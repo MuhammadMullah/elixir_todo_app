@@ -67,10 +67,9 @@ defmodule TodoList.CsvImporter do
   end
 
   defp parse_date(date) do
-    split_date = String.split(date, "/")
-    parsed_date = Enum.map(split_date, fn(t) -> String.to_integer(t) end)
-    [year, month, day] = parsed_date
-    {year, month, day}
+    String.split(date, "/")
+    |> Enum.map(&String.to_integer/1)
+    |> List.to_tuple
   end
 
 end
