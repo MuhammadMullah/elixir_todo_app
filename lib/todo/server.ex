@@ -1,8 +1,8 @@
 defmodule Todo.Server do
   use GenServer
 
-  def start(entries \\ []) do
-    GenServer.start(Todo.Server, entries)
+  def start(name) do
+    GenServer.start(Todo.Server, name)
   end
 
   def add_entry(todo_server, entry) do
@@ -13,23 +13,29 @@ defmodule Todo.Server do
     GenServer.call(todo_server, {:entries, date})
   end
 
-  def init(entries) do
-    {:ok, Todo.List.new(entries)}
+  def init(name) do
+    {:ok, {name, Todo.Database.get(name) || Todo.List.new}}
   end
 
-  def handle_call({:entries, date}, _, todo_list) do
-    {:reply, Todo.List.entries(todo_list, date), todo_list}
+  def handle_call({:entries, date}, _, {name, todo_list}) do
+    {:reply, Todo.List.entries(todo_list, date), {name, todo_list}}
   end
 
-  def handle_cast({:add_entry, entry}, todo_list) do
-    {:noreply, Todo.List.add_entry(todo_list, entry)}
+  def handle_cast({:add_entry, entry}, {name, todo_list}) do
+    new_state = Todo.List.add_entry(todo_list, entry)
+    Todo.Database.store(name, new_state)
+    {:noreply, {name, new_state}}
   end
 
-  def handle_cast({:update_entry, entry_id, updater_function}, todo_list) do
-    {:noreply, Todo.List.update_entry(todo_list, entry_id, updater_function)}
+  def handle_cast({:update_entry, entry_id, updater_function}, {name, todo_list}) do
+    new_state = Todo.List.update_entry(todo_list, entry_id, updater_function)
+    Todo.Database.store(name, new_state)
+    {:noreply, {name, new_state}}
   end
 
-  def handle_cast({:delete_entry, entry_id}, todo_list) do
-    {:noreply, Todo.List.delete_entry(todo_list, entry_id)}
+  def handle_cast({:delete_entry, entry_id}, {name, todo_list}) do
+    new_state = Todo.List.delete_entry(todo_list, entry_id)
+    Todo.Database.store(name, new_state)
+    {:noreply, {name, new_state}}
   end
 end
