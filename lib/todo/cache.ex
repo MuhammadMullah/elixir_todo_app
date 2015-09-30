@@ -1,13 +1,13 @@
 defmodule Todo.Cache do
   use GenServer
 
+  def start do
+    GenServer.start(__MODULE__, nil, name: :todo_cache)
+  end
+
   def start_link do
     IO.puts "Staring todo cache..."
     GenServer.start_link(__MODULE__, nil, name: :todo_cache)
-  end
-
-  def start do
-    GenServer.start(__MODULE__, nil, name: :todo_cache)
   end
 
   def server_process(todo_list_name) do
