@@ -6,25 +6,24 @@ defmodule Todo.Database do
   end
 
   def store(key, data) do
-    GenServer.cast(:database_server, {:store, key, data})
+    key
+    |> choose_worker
+    |> Todo.DatabaseWorker.store(key, data)
   end
 
   def get(key) do
-    GenServer.call(:database_server, {:get, key})
+    key
+    |> choose_worker
+    |> Todo.DatabaseWorker.get(key)
   end
 
   def init(db_folder) do
     {:ok, start_workers(db_folder)}
   end
 
-  def handle_cast({:store, key, data}, workers) do
-    Todo.DatabaseWorker.store(get_worker(workers, key), key, data)
-    {:noreply, workers}
-  end
-
-  def handle_call({:get, key}, _, workers) do
-    data = Todo.DatabaseWorker.get(get_worker(workers, key), key)
-    {:reply, data, workers}
+  def handle_call({:choose_worker, key}, _, workers) do
+    worker_pid = HashDict.get(workers, :erlang.phash2(key, 3))
+    {:reply, worker_pid, workers}
   end
 
   defp start_workers(db_folder) do
@@ -34,7 +33,7 @@ defmodule Todo.Database do
     end
   end
 
-  defp get_worker(workers, key) do
-    HashDict.get(workers, :erlang.phash2(key, 3))
+  defp choose_worker(key) do
+    GenServer.call(:database_server, {:choose_worker, key})
   end
 end
