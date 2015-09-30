@@ -14,25 +14,27 @@ defmodule Todo.Database do
   end
 
   def init(db_folder) do
-    File.mkdir_p(db_folder)
-    {:ok, db_folder}
+    {:ok, start_workers(db_folder)}
   end
 
-  def handle_cast({:store, key, data}, db_folder) do
-    file_name(db_folder, key)
-    |> File.write!(:erlang.term_to_binary(data))
-
-    {:noreply, db_folder}
+  def handle_cast({:store, key, data}, workers) do
+    Todo.DatabaseWorker.store(get_worker(workers, key), key, data)
+    {:noreply, workers}
   end
 
-  def handle_call({:get, key}, _, db_folder) do
-    data = case File.read(file_name(db_folder, key)) do
-      {:ok, contents} -> :erlang.binary_to_term(contents) # if :ok data = contents
-      _ -> nil # if none exists, data = nil
+  def handle_call({:get, key}, _, workers) do
+    data = Todo.DatabaseWorker.get(get_worker(workers, key), key)
+    {:reply, data, workers}
+  end
+
+  defp start_workers(db_folder) do
+    for index <- 0..2, into: HashDict.new do
+      {:ok, worker_pid} = Todo.DatabaseWorker.start(db_folder)
+      {index, worker_pid}
     end
-
-    {:reply, data, db_folder}
   end
 
-  defp file_name(db_folder, key), do: "#{db_folder}/#{key}" # returns path to data
+  defp get_worker(workers, key) do
+    HashDict.get(workers, :erlang.phash2(key, 3))
+  end
 end
