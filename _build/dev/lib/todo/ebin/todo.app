@@ -4,4 +4,6 @@
               {applications,[kernel,stdlib,elixir,logger]},
               {vsn,"0.0.1"},
               {modules,['Elixir.Todo.Cache','Elixir.Todo.CsvImporter',
-                        'Elixir.Todo.List','Elixir.Todo.Server']}]}.
+                        'Elixir.Todo.Database','Elixir.Todo.DatabaseWorker',
+                        'Elixir.Todo.List','Elixir.Todo.Server',
+                        'Elixir.Todo.Supervisor']}]}.
