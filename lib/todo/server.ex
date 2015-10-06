@@ -3,7 +3,15 @@ defmodule Todo.Server do
 
   def start_link(name) do
     IO.puts "Starting Todo Server..."
-    GenServer.start_link(Todo.Server, name)
+    GenServer.start_link(Todo.Server, name, name: via_tuple(name))
+  end
+
+  defp via_tuple(name) do
+    {:via, Todo.ProcessRegistry, {:todo_server, name}}
+  end
+
+  def whereis(name) do
+    Todo.ProcessRegistry.whereis_name({:todo_server, name})
   end
 
   def add_entry(todo_server, entry) do

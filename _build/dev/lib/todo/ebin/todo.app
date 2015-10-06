@@ -5,5 +5,6 @@
               {vsn,"0.0.1"},
               {modules,['Elixir.Todo.Cache','Elixir.Todo.CsvImporter',
                         'Elixir.Todo.Database','Elixir.Todo.DatabaseWorker',
-                        'Elixir.Todo.List','Elixir.Todo.Server',
+                        'Elixir.Todo.List','Elixir.Todo.PoolSupervisor',
+                        'Elixir.Todo.ProcessRegistry','Elixir.Todo.Server',
                         'Elixir.Todo.Supervisor']}]}.

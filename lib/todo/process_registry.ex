@@ -1,7 +1,11 @@
 defmodule Todo.ProcessRegistry do
   use GenServer
-
   import Kernel, except: [send: 2]
+
+  def start_link do
+    IO.puts "Starting Process Registry..."
+    GenServer.start_link(__MODULE__, nil, name: :process_registry)
+  end
 
   def register_name(key, pid) do
     GenServer.call(:process_registry, {:register_name, key, pid})
@@ -51,8 +55,6 @@ defmodule Todo.ProcessRegistry do
     {:noreply, deregister_pid(process_registry, pid)}
   end
 
-
-
   defp deregister_pid(process_registry, pid) do
     Enum.reduce(
       process_registry,
@@ -65,6 +67,4 @@ defmodule Todo.ProcessRegistry do
       end
     )
   end
-
-
 end
