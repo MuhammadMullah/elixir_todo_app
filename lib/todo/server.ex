@@ -2,7 +2,7 @@ defmodule Todo.Server do
   use GenServer
 
   def start_link(name) do
-    IO.puts "Starting Todo Server..."
+    IO.puts "Starting #{name} Todo Server..."
     GenServer.start_link(Todo.Server, name, name: via_tuple(name))
   end
 

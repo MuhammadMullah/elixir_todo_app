@@ -7,4 +7,6 @@
                         'Elixir.Todo.Database','Elixir.Todo.DatabaseWorker',
                         'Elixir.Todo.List','Elixir.Todo.PoolSupervisor',
                         'Elixir.Todo.ProcessRegistry','Elixir.Todo.Server',
-                        'Elixir.Todo.Supervisor']}]}.
+                        'Elixir.Todo.ServerSupervisor',
+                        'Elixir.Todo.Supervisor',
+                        'Elixir.Todo.SystemSupervisor']}]}.
