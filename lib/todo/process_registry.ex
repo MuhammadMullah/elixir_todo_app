@@ -11,16 +11,15 @@ defmodule Todo.ProcessRegistry do
     GenServer.call(:process_registry, {:register_name, key, pid})
   end
 
-  def whereis_name(key) do
-    GenServer.call(:process_registry, {:whereis_name, key})
-  end
-
   def unregister_name(key) do
     GenServer.call(:process_register, {:unregister_name, key})
   end
 
-  def init(_) do
-    {:ok, HashDict.new}
+  def whereis_name(key) do
+    case :ets.lookup(:ets_process_registry, key) do
+      [{^key, cached}] -> cached
+      _ -> :undefined
+    end
   end
 
   def send(key, message) do
@@ -32,39 +31,35 @@ defmodule Todo.ProcessRegistry do
     end
   end
 
-  def handle_call({:register_name, key, pid}, _, process_registry) do
-    case HashDict.get(process_registry, key) do
-      nil ->
-        Process.monitor(pid)
-        {:reply, :yes, HashDict.put(process_registry, key, pid)}
+  def init(_) do
+    :ets.new(:ets_process_registry, [:named_table, :protected, :set])
+    {:ok, nil}
+  end
 
-      _ ->
-        {:reply, :no, process_registry}
+  def handle_call({:register_name, key, pid}, _, state) do
+    if whereis_name(key) != :undefined do
+      # Some other process has registered under this alias
+      {:reply, :no, state}
+    else
+      Process.monitor(pid)
+      :ets.insert(:ets_process_registry, {key, pid})
+      {:reply, :yes, state}
     end
+    # if cache_name(key, pid) do
+    #   Process.monitor(pid)
+    #   {:reply, :yes, state}
+    # else
+    #   {:reply, :no, state}
+    # end
   end
 
-  def handle_call({:whereis_name, key}, _, process_registry) do
-    {:reply, HashDict.get(process_registry, key, :undefined), process_registry}
+  def handle_call({:unregister_name, key}, _, state) do
+    :ets.delete(:ets_process_registry, key)
+    {:reply, key, state}
   end
 
-  def handle_call({:unregister_name, key}, _, process_registry) do
-    {:reply, key, HashDict.delete(process_registry, key)}
-  end
-
-  def handle_info({:DOWN, _, :process, pid, _}, process_registry) do
-    {:noreply, deregister_pid(process_registry, pid)}
-  end
-
-  defp deregister_pid(process_registry, pid) do
-    Enum.reduce(
-      process_registry,
-      process_registry,
-      fn
-        ({registered_alias, registered_process}, registry_acc) when registered_process == pid ->
-          HashDict.delete(registry_acc, registered_alias)
-
-        (_, registry_acc) -> registry_acc
-      end
-    )
+  def handle_info({:DOWN, _, :process, pid, _}, state) do
+    :ets.match_delete(:ets_process_registry, {:_, pid})
+    {:noreply, state}
   end
 end

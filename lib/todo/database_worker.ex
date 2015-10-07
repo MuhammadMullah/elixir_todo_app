@@ -14,6 +14,10 @@ defmodule Todo.DatabaseWorker do
     GenServer.call(via_tuple(worker_id), {:get, key})
   end
 
+  defp via_tuple(worker_id) do
+    {:via, Todo.ProcessRegistry, {:database_worker, worker_id}}
+  end
+
   def init(db_folder) do
     File.mkdir_p(db_folder)
     {:ok, db_folder}
@@ -36,8 +40,4 @@ defmodule Todo.DatabaseWorker do
   end
 
   defp file_name(db_folder, key), do: "#{db_folder}/#{key}" # returns path to data
-
-  defp via_tuple(worker_id) do
-    {:via, Todo.ProcessRegistry, {:database_worker, worker_id}}
-  end
 end
