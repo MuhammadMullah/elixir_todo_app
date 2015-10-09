@@ -11,4 +11,4 @@
                         'Elixir.Todo.ProcessRegistry','Elixir.Todo.Server',
                         'Elixir.Todo.ServerSupervisor',
                         'Elixir.Todo.Supervisor',
-                        'Elixir.Todo.SystemSupervisor']}]}.
+                        'Elixir.Todo.SystemSupervisor','Elixir.Todo.Web']}]}.
