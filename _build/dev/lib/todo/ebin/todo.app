@@ -1,7 +1,7 @@
 {application,todo,
              [{registered,[]},
               {description,"todo"},
-              {applications,[kernel,stdlib,elixir,logger]},
+              {applications,[kernel,stdlib,elixir,logger,gproc]},
               {mod,{'Elixir.Todo.Application',[]}},
               {vsn,"0.0.1"},
               {modules,['Elixir.Todo.Application','Elixir.Todo.Cache',
