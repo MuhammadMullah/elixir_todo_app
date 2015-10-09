@@ -45,12 +45,6 @@ defmodule Todo.ProcessRegistry do
       :ets.insert(:ets_process_registry, {key, pid})
       {:reply, :yes, state}
     end
-    # if cache_name(key, pid) do
-    #   Process.monitor(pid)
-    #   {:reply, :yes, state}
-    # else
-    #   {:reply, :no, state}
-    # end
   end
 
   def handle_call({:unregister_name, key}, _, state) do

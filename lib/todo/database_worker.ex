@@ -14,8 +14,8 @@ defmodule Todo.DatabaseWorker do
     GenServer.call(via_tuple(worker_id), {:get, key})
   end
 
-  defp via_tuple(worker_id) do
-    {:via, Todo.ProcessRegistry, {:database_worker, worker_id}}
+ defp via_tuple(worker_id) do
+    {:via, :gproc, {:n, :l, {:database_worker, worker_id}}}
   end
 
   def init(db_folder) do
