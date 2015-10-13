@@ -1,40 +1,51 @@
 defmodule Todo.Database do
   @pool_size 3
 
-  def start_link(db_folder) do
-    Todo.PoolSupervisor.start_link(db_folder, @pool_size)
+  def start_link do
+    # Initializes the mnesia database.
+    :mnesia.stop    # First we stop mnesia, so we can create the schema.
+    :mnesia.create_schema([node()])
+    :mnesia.start
+    :mnesia.create_table(:todo_lists, [attributes: [:name, :list], disc_only_copies: [node()]])
+    :ok = :mnesia.wait_for_tables([:todo_lists], 5000)
+
+    Todo.PoolSupervisor.start_link(@pool_size)
   end
 
   def store(key, data) do
-    key
-    |> choose_worker
-    |> Todo.DatabaseWorker.store(key, data)
+    Todo.DatabaseWorker.store(choose_worker(key), key, data)
   end
 
   def get(key) do
-    key
-    |> choose_worker
-    |> Todo.DatabaseWorker.get(key)
+    Todo.DatabaseWorker.get(choose_worker(key), key)
   end
 
   defp choose_worker(key) do
     :erlang.phash2(key, @pool_size) + 1
   end
-
-  # def init(db_folder) do
-  #   {:ok, start_workers(db_folder)}
-  # end
-
-  # def handle_call({:choose_worker, key}, _, workers) do
-  #   worker_pid = HashDict.get(workers, :erlang.phash2(key, 3))
-  #   {:reply, worker_pid, workers}
-  # end
-
-  # defp start_workers(db_folder) do
-  #   for index <- 1..3, into: HashDict.new do
-  #     {:ok, worker_pid} = Todo.DatabaseWorker.start_link(db_folder, index)
-  #     {index, worker_pid}
-  #   end
-  # end
-
 end
+
+###### OLD DATABASE CODE #####
+# defmodule Todo.Database do
+#   @pool_size 3
+
+#   def start_link(db_folder) do
+#     Todo.PoolSupervisor.start_link(db_folder, @pool_size)
+#   end
+
+#   def store(key, data) do
+#     key
+#     |> choose_worker
+#     |> Todo.DatabaseWorker.store(key, data)
+#   end
+
+#   def get(key) do
+#     key
+#     |> choose_worker
+#     |> Todo.DatabaseWorker.get(key)
+#   end
+
+#   defp choose_worker(key) do
+#     :erlang.phash2(key, @pool_size) + 1
+#   end
+# end
